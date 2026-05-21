@@ -1,130 +1,100 @@
+"""
+评测入口脚本
+评估 CelebA 100 类 和 自收集 20 类 数据集的 Top-1 识别准确率.
+
+用法:
+    python evaluate.py              # 同时评测两个数据集 (如果数据存在)
+    python evaluate.py --celeba     # 仅评测 CelebA
+    python evaluate.py --custom     # 仅评测自收集 20 类
+"""
+import argparse
+import sys
 import os
-import numpy as np
-import torch
-from scipy.spatial.distance import cosine
-from config import DEVICE, CELEBA_REGISTER_DIR, CELEBA_TEST_DIR, THRESHOLD
-from utils import FaceEngine
 
-def build_celeba_gallery(engine):
-    """
-    针对 CelebA 数据集动态构建特征底库
-    """
-    print("====== 开始构建 CelebA 100类 特征底库 ======")
-    gallery = {}
-    
-    # 遍历 100 个 identity 文件夹
-    identities = sorted(os.listdir(CELEBA_REGISTER_DIR))
-    for identity_id in identities:
-        id_dir = os.path.join(CELEBA_REGISTER_DIR, identity_id)
-        if not os.path.isdir(id_dir) or identity_id.startswith('.'):
-            continue
-            
-        embeddings_list = []
-        for img_name in os.listdir(id_dir):
-            if img_name.startswith('.'):
-                continue
-            img_path = os.path.join(id_dir, img_name)
-            
-            # 检测并提取特征
-            _, cropped_faces = engine.detect_faces(img_path)
-            if cropped_faces is not None:
-                emb = engine.get_embeddings(cropped_faces)
-                if emb is not None:
-                    embeddings_list.append(emb[0]) # 注册图默认为单人正脸
-                    
-        if embeddings_list:
-            # 3张注册图取平均，作为该身份的稳定表征
-            gallery[identity_id] = np.mean(embeddings_list, axis=0)
-            
-    print(f"CelebA 底库构建完成，共注册 {len(gallery)} 类身份。\n")
-    return gallery
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from config import (
+    CELEBA_REGISTER_DIR, CELEBA_TEST_DIR, GALLERY_CELEBA_PATH,
+    REGISTERED_DIR, TEST_IMAGES_DIR, GALLERY_20_PATH,
+)
+from core.face_engine import FaceEngine
+from core.gallery_builder import build_gallery
+from core.evaluator import evaluate_top1, print_report
 
-def evaluate_celeba():
-    """
-    对 CelebA 进行 Top-1 准确率评测
-    """
-    engine = FaceEngine()
-    gallery = build_celeba_gallery(engine)
-    
+
+def run_celeba_eval(engine):
+    """构建 CelebA 底库并评测"""
+    print("\n" + "="*50)
+    print("  CelebA 100 类 数据集评测")
+    print("="*50)
+
+    # 构建底库
+    gallery = build_gallery(engine, CELEBA_REGISTER_DIR, GALLERY_CELEBA_PATH)
     if not gallery:
-        print("底库为空，请检查数据路径！")
+        print("[跳过] CelebA 底库为空, 无法评测")
         return
 
-    correct_count = 0
-    total_count = 0
-    
-    success_examples = []
-    fail_examples = []
+    # 评测
+    result = evaluate_top1(engine, gallery, CELEBA_TEST_DIR, max_examples=5)
+    print_report(result, "CelebA 100 类")
+    return result
 
-    print("====== 开始对 CelebA 100类 进行测试 ======")
-    identities = sorted(os.listdir(CELEBA_TEST_DIR))
-    
-    for identity_id in identities:
-        id_dir = os.path.join(CELEBA_TEST_DIR, identity_id)
-        if not os.path.isdir(id_dir) or identity_id.startswith('.'):
-            continue
-            
-        for img_name in os.listdir(id_dir):
-            if img_name.startswith('.'):
-                continue
-            img_path = os.path.join(id_dir, img_name)
-            total_count += 1
-            
-            # 1. 提取测试集图片的特征
-            _, cropped_faces = engine.detect_faces(img_path)
-            if cropped_faces is None:
-                # 如果没检测到人脸，默认算作识别失败
-                fail_examples.append((img_name, identity_id, "未检测到人脸"))
-                continue
-                
-            test_embs = engine.get_embeddings(cropped_faces)
-            if test_embs is None:
-                fail_examples.append((img_name, identity_id, "特征提取失败"))
-                continue
-                
-            test_emb = test_embs[0] # 取主脸
-            
-            # 2. 与底库中的100类计算余弦相似度，找出最相似的 Top-1
-            best_match = None
-            max_sim = -1.0
-            
-            for gal_id, gal_emb in gallery.items():
-                # 1 - cosine 得到余弦相似度，值在 [-1, 1] 之间
-                sim = 1 - cosine(test_emb, gal_emb)
-                if sim > max_sim:
-                    max_sim = sim
-                    best_match = gal_id
-            
-            # 3. 判断是否识别正确（需通过设定的相似度阈值）
-            predicted_id = best_match if max_sim >= THRESHOLD else "unknown"
-            
-            if predicted_id == identity_id:
-                correct_count += 1
-                if len(success_examples) < 3:
-                    success_examples.append((img_name, identity_id, max_sim))
-            else:
-                if len(fail_examples) < 3:
-                    fail_examples.append((img_name, identity_id, predicted_id, max_sim))
 
-    # 4. 计算并输出 Top-1 准确率
-    accuracy = (correct_count / total_count) * 100 if total_count > 0 else 0
-    print("\n================ 测试报告 ================")
-    print(f"总测试样本数: {total_count}")
-    print(f"正确识别数: {correct_count}")
-    print(f"Top-1 识别准确率: {accuracy:.2f}%")
-    print("==========================================")
-    
-    # 5. 输出样例，直接用于写大作业报告（拿满分析分）
-    print("\n[成功样例展示（供报告使用）]")
-    for ex in success_examples:
-        print(f"图片: {ex[0]} | 真实身份: {ex[1]} | 匹配置信度: {ex[2]:.4f}")
-        
-    print("\n[失败样例展示（供报告使用，用于写失败原因分析）]")
-    for ex in fail_examples:
-        if len(ex) == 3:
-            print(f"图片: {ex[0]} | 真实身份: {ex[1]} | 原因: {ex[2]}")
-        else:
-            print(f"图片: {ex[0]} | 真实身份: {ex[1]} | 误判为: {ex[2]} | 匹配置信度: {ex[3]:.4f}")
+def run_custom_eval(engine):
+    """构建自收集 20 类底库并评测"""
+    print("\n" + "="*50)
+    print("  自收集 20 类 数据集评测")
+    print("="*50)
+
+    if not os.path.isdir(REGISTERED_DIR):
+        print(f"[跳过] 自收集注册集目录不存在: {REGISTERED_DIR}")
+        print("  请先收集数据并放置到 dataset/registered/ 目录下")
+        return
+
+    if not os.path.isdir(TEST_IMAGES_DIR):
+        print(f"[跳过] 自收集测试集目录不存在: {TEST_IMAGES_DIR}")
+        print("  请先收集数据并放置到 dataset/test/images/ 目录下")
+        return
+
+    # 构建底库
+    gallery = build_gallery(engine, REGISTERED_DIR, GALLERY_20_PATH)
+    if not gallery:
+        print("[跳过] 自收集底库为空, 无法评测")
+        return
+
+    # 评测
+    result = evaluate_top1(engine, gallery, TEST_IMAGES_DIR, max_examples=5)
+    print_report(result, "自收集 20 类")
+    return result
+
+
+def main():
+    parser = argparse.ArgumentParser(description="人脸识别系统评测")
+    parser.add_argument('--celeba', action='store_true', help='仅评测 CelebA 数据集')
+    parser.add_argument('--custom', action='store_true', help='仅评测自收集 20 类数据集')
+    args = parser.parse_args()
+
+    # 默认: 两个都评测
+    eval_celeba = args.celeba or (not args.celeba and not args.custom)
+    eval_custom = args.custom or (not args.celeba and not args.custom)
+
+    engine = FaceEngine()
+    results = {}
+
+    if eval_celeba:
+        results['celeba'] = run_celeba_eval(engine)
+
+    if eval_custom:
+        results['custom'] = run_custom_eval(engine)
+
+    # 汇总
+    print("\n" + "="*50)
+    print("  评测汇总")
+    print("="*50)
+    for name, res in results.items():
+        if res:
+            print(f"  {name}: Top-1 准确率 = {res['accuracy']:.2f}%  ({res['correct']}/{res['total']})")
+    print("="*50)
+
 
 if __name__ == '__main__':
-    evaluate_celeba()
+    main()

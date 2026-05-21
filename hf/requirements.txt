@@ -2,6 +2,8 @@ torch>=2.0.0
 torchvision
 facenet-pytorch
 opencv-python
+numpy
 pandas
 pillow
 gradio
+scipy
