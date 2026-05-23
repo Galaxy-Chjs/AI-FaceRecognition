@@ -46,7 +46,7 @@ def predict_and_draw(input_img):
     img_bgr = cv2.cvtColor(np.array(input_img), cv2.COLOR_RGB2BGR)
 
     # 1. 人脸检测
-    bboxes, faces = engine.detect_faces(input_img)
+    bboxes, faces, _ = engine.detect_faces(input_img)
 
     if len(bboxes) == 0:
         cv2.putText(img_bgr, "No face detected", (10, 30),

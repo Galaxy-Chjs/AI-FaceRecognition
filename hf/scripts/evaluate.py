@@ -18,7 +18,7 @@ from config import (
 )
 from core.face_engine import FaceEngine
 from core.gallery_builder import build_gallery
-from core.evaluator import evaluate_top1, print_report
+from core.evaluator import evaluate_top1, evaluate_custom_top1, print_report
 
 
 def run_celeba_eval(engine):
@@ -61,8 +61,8 @@ def run_custom_eval(engine):
         print("[跳过] 自收集底库为空, 无法评测")
         return
 
-    # 评测
-    result = evaluate_top1(engine, gallery, TEST_IMAGES_DIR, max_examples=5)
+    # 评测 (自收集数据: 图片平铺在 images/ 下, 身份从文件名解析)
+    result = evaluate_custom_top1(engine, gallery, TEST_IMAGES_DIR, max_examples=5)
     print_report(result, "自收集 20 类")
     return result
 

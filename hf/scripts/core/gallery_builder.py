@@ -49,7 +49,7 @@ def build_gallery(engine, register_dir, save_path):
                 continue
             img_path = os.path.join(id_dir, img_name)
 
-            bboxes, faces = engine.detect_faces(img_path)
+            bboxes, faces, _ = engine.detect_faces(img_path)
             if faces is None:
                 print(f"  [警告] {img_path} 未检测到人脸, 跳过")
                 continue
@@ -61,7 +61,10 @@ def build_gallery(engine, register_dir, save_path):
 
         if embeddings_list:
             # 多张注册图取平均, 获得更稳定的特征表示
-            gallery[identity_id] = np.mean(embeddings_list, axis=0)
+            avg_emb = np.mean(embeddings_list, axis=0)
+            # 平均后重新 L2 归一化 (平均会改变向量长度)
+            avg_emb = avg_emb / np.linalg.norm(avg_emb)
+            gallery[identity_id] = avg_emb
             print(f"  [{i}/{len(identities)}] {identity_id}: 注册 {len(embeddings_list)} 张图片")
         else:
             print(f"  [{i}/{len(identities)}] {identity_id}: 无有效人脸, 跳过")

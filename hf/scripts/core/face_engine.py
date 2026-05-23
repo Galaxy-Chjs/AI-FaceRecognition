@@ -16,9 +16,6 @@ class FaceEngine:
     """人脸检测与特征提取引擎"""
 
     def __init__(self):
-        # MTCNN: keep_all=True 检测图中所有人脸
-        #        post_process=True 将裁剪后的人脸归一化到 [-1, 1] (InceptionResnetV1 要求的输入范围)
-        #        min_face_size=20 适应 CelebA 等较小的人脸
         self.mtcnn = MTCNN(
             keep_all=True,
             device=DEVICE,
@@ -26,47 +23,54 @@ class FaceEngine:
             image_size=IMAGE_SIZE,
             min_face_size=20,
         )
-        # InceptionResnetV1: 预训练于 VGGFace2, 输出 512 维 embedding
         self.resnet = InceptionResnetV1(pretrained='vggface2').eval().to(DEVICE)
 
-    def detect_faces(self, image):
+    def detect_faces(self, image, min_confidence=0.9):
         """
-        检测图片中的人脸, 返回边界框和裁剪后的人脸张量.
+        检测图片中的人脸, 返回边界框、裁剪张量、置信度.
 
         Args:
             image: PIL.Image 或 文件路径字符串
+            min_confidence: 最低检测置信度, 低于此值的检测结果被过滤
 
         Returns:
-            bboxes: np.ndarray, shape (N, 4), 绝对像素坐标 [x1, y1, x2, y2].
-                    无检测结果时返回 shape (0, 4) 的空数组.
-            faces:  torch.Tensor, shape (N, 3, 160, 160), 已归一化到 [-1, 1].
-                    无检测结果时返回 None.
+            bboxes:  np.ndarray, shape (N, 4), [x1, y1, x2, y2]
+            faces:   torch.Tensor or None, shape (N, 3, 160, 160)
+            probs:   np.ndarray, shape (N,), 每张人脸的检测置信度
         """
         if isinstance(image, str):
             image = Image.open(image).convert('RGB')
 
-        # detect() 仅做检测, 返回边界框坐标
-        bboxes, _ = self.mtcnn.detect(image)
+        # detect() 返回边界框和置信度
+        bboxes, probs = self.mtcnn.detect(image)
 
-        # mtcnn(image) 完成检测+裁剪+对齐+归一化, 返回可直接送入模型的张量
+        # mtcnn(image) 返回裁剪+归一化后的人脸张量
         faces = self.mtcnn(image)
 
         # 统一空结果格式
         if bboxes is None:
-            bboxes = np.empty((0, 4), dtype=np.float64)
+            return np.empty((0, 4), dtype=np.float64), None, np.array([])
 
-        return bboxes, faces
+        # 过滤低置信度检测 (噪声、非人脸区域)
+        if min_confidence > 0 and probs is not None:
+            mask = probs >= min_confidence
+            bboxes = bboxes[mask]
+            if probs is not None:
+                probs = probs[mask]
+            if faces is not None:
+                faces = faces[mask]
+            # 过滤后可能变空
+            if len(bboxes) == 0:
+                return np.empty((0, 4), dtype=np.float64), None, np.array([])
+
+        if probs is None:
+            probs = np.ones(len(bboxes))
+
+        return bboxes, faces, probs
 
     def get_embeddings(self, faces):
         """
         将裁剪人脸张量送入 InceptionResnetV1, 提取 L2 归一化后的 512 维特征.
-
-        Args:
-            faces: torch.Tensor, shape (N, 3, 160, 160) 或 (3, 160, 160)
-
-        Returns:
-            np.ndarray, shape (N, 512), 每一行是 L2 归一化后的 embedding.
-            若输入为 None 则返回 None.
         """
         if faces is None:
             return None
@@ -75,7 +79,6 @@ class FaceEngine:
             if faces.dim() == 3:
                 faces = faces.unsqueeze(0)
             embeddings = self.resnet(faces.to(DEVICE))
-            # L2 归一化: 使余弦相似度等价于向量点积, 提升匹配精度
             embeddings = torch.nn.functional.normalize(embeddings, p=2, dim=1)
 
         return embeddings.cpu().numpy()

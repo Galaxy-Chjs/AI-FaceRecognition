@@ -16,7 +16,7 @@ DATASET_DIR = os.path.join(BASE_DIR, 'dataset')
 REGISTERED_DIR = os.path.join(DATASET_DIR, 'registered')
 TEST_DIR = os.path.join(DATASET_DIR, 'test')
 TEST_IMAGES_DIR = os.path.join(TEST_DIR, 'images')
-ANNOTATIONS_PATH = os.path.join(TEST_DIR, 'annotations.jsonl')
+ANNOTATIONS_PATH = os.path.join(DATASET_DIR, 'annotations.jsonl')
 IDENTITIES_CSV = os.path.join(DATASET_DIR, 'identities.csv')
 
 # --- CelebA 100 类数据集路径 ---

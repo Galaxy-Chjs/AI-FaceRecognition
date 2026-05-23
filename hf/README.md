@@ -10,7 +10,8 @@
 │   ├── registered/                     # 注册集 (每人至少 2 张)
 │   └── test/                           # 测试集
 │       ├── images/                     # 测试图片 (每人 3 张: 1 单人 + 2 多人)
-│       └── annotations.jsonl           # 标注文件
+│       ├── annotations.jsonl           # 标注文件 (bbox: [x, y, width, height])
+│       └── review/                     # 标注可视化图片 (供人工审查)
 ├── celeba_100_identities_3reg_3test/   # CelebA 100 类数据集
 │   ├── register/                       # 注册集 (每类 3 张)
 │   └── test/                           # 测试集 (每类 3 张)
@@ -22,7 +23,8 @@
 │   │   └── evaluator.py               # 评测模块
 │   ├── build_gallery.py                # 底库构建入口
 │   ├── evaluate.py                     # 评测入口
-│   ├── auto_annotate.py                # 自动标注工具
+│   ├── auto_annotate.py                # 自动标注 + 可视化工具
+│   ├── visualize_annotations.py        # 标注可视化 (人工审查)
 │   ├── app.py                          # Gradio 前端演示
 │   ├── model/                          # 底库文件 (.pt)
 │   └── results/                        # 评测结果输出
@@ -76,13 +78,22 @@ python app.py
 # 浏览器访问 http://localhost:7860
 ```
 
-### 4. 自动标注 (自收集数据集)
+### 4. 自动标注 + 可视化 (自收集数据集)
 
 ```bash
 cd scripts
+
+# 自动生成标注 + 可视化 (一步完成)
 python auto_annotate.py
-# 生成 dataset/test/annotations.jsonl, 需人工复核
+
+# 仅对已有标注做可视化 (修改 annotations.jsonl 后重新查看)
+python auto_annotate.py --vis-only
 ```
+
+标注生成后，请检查 `dataset/test/review/` 中的可视化图片：
+- 绿色框 = 已知身份 (p01-p20)，红色框 = unknown
+- 确认 bbox 是否准确圈住了人脸
+- 如有错误，手动修改 `annotations.jsonl` 后重新运行 `--vis-only`
 
 ## 技术方案
 

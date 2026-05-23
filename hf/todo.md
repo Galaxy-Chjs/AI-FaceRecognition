@@ -151,3 +151,12 @@ dataset/
 3. 人脸识别系统搭建指南：https://community.hailo.ai/t/a-comprehensive-guide-to-building-a-face-recognitionsystem/8803
 4. 人脸识别技术解读：https://cloud.tencent.com/developer/article/1005303
 5. 人脸识别算法解析：https://www.cnblogs.com/goldsunshine/p/19231326
+
+
+当前问题：
+1. 标注结果和测试结果不一致，脚本自动标注的框往往不能对应到正确的人脸，而进行实际测试的时候却又能识别出这是正确的类别，但是打分正确率确实100%，起冲突了。
+2. 大部分自动标注的人脸都不是正确类别
+3. 会出现bbox框多标的情况，例如明明是单人照却有2个框，会把很多不是人脸的地方标成框
+4. 标注后的可视化图片会出现比例显示问题，导致标注信息不能完整显示在图片中（例如太靠上导致超出图片）
+5. annotations.jsonl 该标注文件的标准路径应该放在AI-FaceRecognition/hf/dataset/annotations.jsonl
+怎么解决这些？模型能力不足吗？模型的自动标注结果是不是一般都不对？那为什么测试的时候又能正确识别并标注呢？
