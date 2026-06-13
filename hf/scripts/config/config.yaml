@@ -1,0 +1,31 @@
+# ============================================================
+# 人脸识别系统 - 全局配置文件
+# ============================================================
+
+# 运行设备: auto (自动检测), cuda, cpu
+device: auto
+
+# 目录路径 (相对于项目根目录 hf/)
+paths:
+  dataset_dir: dataset
+  registered_dir: dataset/registered
+  test_dir: dataset/test
+  test_images_dir: dataset/test/images
+  annotations_path: dataset/annotations.jsonl
+  identities_csv: dataset/identities.csv
+
+  celeba_dir: celeba_100_identities_3reg_3test
+  celeba_register_dir: celeba_100_identities_3reg_3test/register
+  celeba_test_dir: celeba_100_identities_3reg_3test/test
+
+  model_dir: scripts/model
+  gallery_20_path: scripts/model/gallery_20classes.pt
+  gallery_celeba_path: scripts/model/gallery_celeba.pt
+
+  results_dir: scripts/results
+
+# 人脸识别核心参数
+recognition:
+  image_size: 160        # MTCNN 裁剪输出尺寸 (FaceNet 标准)
+  embedding_dim: 512     # InceptionResnetV1 输出维度
+  threshold: 0.63        # 余弦相似度阈值 (>= 此值判定为已知身份)

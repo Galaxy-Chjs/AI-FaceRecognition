@@ -1,117 +1,153 @@
-"""
-人脸识别系统 - Gradio 前端演示界面
-支持图片上传、多人脸检测、身份识别、结果可视化.
-
-用法:
-    python app.py
-    # 浏览器访问 http://localhost:7860
-"""
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import cv2
+import torch
 import numpy as np
 from PIL import Image
 import gradio as gr
-from config import GALLERY_20_PATH, GALLERY_CELEBA_PATH, THRESHOLD
+from config import GALLERY_20_PATH, GALLERY_CELEBA_PATH, THRESHOLD, DEVICE
 from core.face_engine import FaceEngine
 
+engine = FaceEngine()
 
-def load_gallery():
-    """加载所有可用的底库"""
-    import torch
+
+def load_gallery(mode):
     gallery = {}
-    for path in [GALLERY_20_PATH, GALLERY_CELEBA_PATH]:
-        if os.path.exists(path):
-            gallery.update(torch.load(path, weights_only=False))
+    if mode in ("CelebA 100 类", "全部 (120 类)"):
+        if os.path.exists(GALLERY_CELEBA_PATH):
+            gallery.update(torch.load(GALLERY_CELEBA_PATH, weights_only=False))
+    if mode in ("自收集 20 类", "全部 (120 类)"):
+        if os.path.exists(GALLERY_20_PATH):
+            gallery.update(torch.load(GALLERY_20_PATH, weights_only=False))
     return gallery
 
 
-# 初始化
-engine = FaceEngine()
-gallery = load_gallery()
-print(f"底库加载完成, 共 {len(gallery)} 个身份")
+def draw_face_box(img, x1, y1, x2, y2, identity, confidence, img_h):
+    if identity != "unknown":
+        box_color = (46, 204, 113)
+        text_bg = (39, 174, 96)
+    else:
+        box_color = (231, 76, 60)
+        text_bg = (192, 57, 43)
+
+    cv2.rectangle(img, (x1, y1), (x2, y2), box_color, 2, cv2.LINE_AA)
+
+    label = f"{identity}  {confidence:.0%}" if identity != "unknown" else "unknown"
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = max(0.45, min(0.6, img_h / 800))
+    thickness = 1
+    (tw, th), baseline = cv2.getTextSize(label, font, font_scale, thickness)
+
+    pad = 4
+    if y1 - th - pad * 2 > 0:
+        label_y1 = y1 - th - pad * 2
+        label_y2 = y1
+        text_y = y1 - pad
+    else:
+        label_y1 = y2
+        label_y2 = y2 + th + pad * 2
+        text_y = y2 + th + pad
+
+    lx1 = max(0, x1)
+    lx2 = min(img.shape[1], x1 + tw + pad * 2)
+    cv2.rectangle(img, (lx1, label_y1), (lx2, label_y2), text_bg, -1)
+    cv2.putText(img, label, (lx1 + pad, text_y), font, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
+    return img
 
 
-def predict_and_draw(input_img):
-    """
-    核心回调: 输入 PIL 图片, 输出标注了人脸框和身份标签的图片.
-    """
+def predict_and_draw(input_img, mode):
     if input_img is None:
-        return None
+        return None, "请上传图片"
 
-    # Gradio 传入 RGB PIL Image, 转为 BGR 用于 OpenCV 画图
-    img_bgr = cv2.cvtColor(np.array(input_img), cv2.COLOR_RGB2BGR)
+    gallery = load_gallery(mode)
+    if not gallery:
+        return np.array(input_img), "底库为空, 请先构建底库"
 
-    # 1. 人脸检测
-    bboxes, faces, _ = engine.detect_faces(input_img)
+    gallery_ids = list(gallery.keys())
+    gallery_matrix = np.stack([gallery[gid] for gid in gallery_ids])
+
+    img_rgb = np.array(input_img, dtype=np.uint8)
+    img_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)
+    img_h, img_w = img_bgr.shape[:2]
+
+    bboxes, faces, probs = engine.detect_faces(input_img, min_confidence=0.9)
 
     if len(bboxes) == 0:
-        cv2.putText(img_bgr, "No face detected", (10, 30),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
-        return cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+        info = "未检测到人脸"
+        cv2.putText(img_bgr, info, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (231, 76, 60), 2, cv2.LINE_AA)
+        return cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB), info
 
-    # 2. 提取特征
     embeddings = engine.get_embeddings(faces)
 
-    # 3. 逐脸匹配并画框
+    results = []
     for i, bbox in enumerate(bboxes):
         x1, y1, x2, y2 = map(int, bbox)
-
         identity = "unknown"
         confidence = 0.0
 
         if embeddings is not None and i < len(embeddings):
-            face_emb = embeddings[i]
-            best_sim = -1.0
-            best_id = "unknown"
-
-            for gal_id, gal_emb in gallery.items():
-                # embedding 已 L2 归一化, 余弦相似度 = 点积
-                sim = float(np.dot(face_emb, gal_emb))
-                if sim > best_sim:
-                    best_sim = sim
-                    best_id = gal_id
-
+            sims = gallery_matrix @ embeddings[i]
+            best_idx = int(np.argmax(sims))
+            best_sim = float(sims[best_idx])
             if best_sim >= THRESHOLD:
-                identity = best_id
+                identity = gallery_ids[best_idx]
                 confidence = best_sim
 
-        # 绿色 = 已知身份, 红色 = unknown
-        color = (0, 255, 0) if identity != "unknown" else (0, 0, 255)
-        cv2.rectangle(img_bgr, (x1, y1), (x2, y2), color, 2)
+        draw_face_box(img_bgr, x1, y1, x2, y2, identity, confidence, img_h)
+        results.append({"identity": identity, "confidence": confidence, "bbox": [x1, y1, x2, y2]})
 
-        # 标签
-        label = f"{identity} ({confidence:.2f})" if identity != "unknown" else "unknown"
-        (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
-        cv2.rectangle(img_bgr, (x1, y1 - th - 8), (x1 + tw + 4, y1), color, -1)
-        cv2.putText(img_bgr, label, (x1 + 2, y1 - 4),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2, cv2.LINE_AA)
+    known = [r for r in results if r["identity"] != "unknown"]
+    unknown_count = len(results) - len(known)
+    lines = [f"检测到 {len(results)} 张人脸, 识别 {len(known)} 人, 未知 {unknown_count} 人"]
+    for r in known:
+        lines.append(f"  {r['identity']}: 置信度 {r['confidence']:.2%}")
+    info = "\n".join(lines)
 
-    return cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+    return cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB), info
 
 
-# Gradio 界面
+CSS = """
+.main-title { text-align: center; margin-bottom: 0.5em; }
+.result-box { padding: 12px; border-radius: 8px; background: #f8f9fa; }
+"""
+
 with gr.Blocks(title="人脸识别系统") as demo:
-    gr.Markdown("# 人脸识别系统")
-    gr.Markdown("本地运行的人脸识别系统, 支持多人脸检测与身份识别. 上传图片即可体验.")
+    gr.Markdown("# 人脸识别系统", elem_classes="main-title")
 
     with gr.Row():
-        with gr.Column():
-            input_image = gr.Image(type="pil", label="上传图片")
-            submit_btn = gr.Button("开始识别", variant="primary")
-        with gr.Column():
-            output_image = gr.Image(label="识别结果")
+        with gr.Column(scale=1):
+            input_image = gr.Image(type="pil", label="上传测试图片", height=400)
+            submit_btn = gr.Button("开始识别", variant="primary", size="lg")
+            mode = gr.Radio(
+                choices=["CelebA 100 类", "自收集 20 类", "全部 (120 类)"],
+                value="自收集 20 类",
+                label="选择底库",
+            )
 
-    submit_btn.click(fn=predict_and_draw, inputs=input_image, outputs=output_image)
+        with gr.Column(scale=1):
+            output_image = gr.Image(label="识别结果", height=400)
+            output_info = gr.Textbox(label="识别结果", lines=4, interactive=False)
 
-    gr.Markdown(f"### 系统信息")
-    gr.Markdown(f"- 底库身份数: **{len(gallery)}**")
-    gr.Markdown(f"- 相似度阈值: **{THRESHOLD}**")
-    gr.Markdown(f"- 检测模型: MTCNN | 特征模型: InceptionResnetV1 (VGGFace2)")
+    submit_btn.click(
+        fn=predict_and_draw,
+        inputs=[input_image, mode],
+        outputs=[output_image, output_info],
+    )
+
+    gr.Markdown("---")
+    gr.Markdown(f"""
+### 系统信息
+| 项目 | 值 |
+|------|-----|
+| 运行设备 | {DEVICE} |
+| 人脸检测 | MTCNN|
+| 特征提取 | InceptionResnetV1 VGGFace2|
+| 相似度阈值 | {THRESHOLD} |
+""")
 
 
 if __name__ == '__main__':
-    demo.launch(server_name="0.0.0.0", server_port=7860)
+    demo.launch(server_name="0.0.0.0", server_port=7860, css=CSS)

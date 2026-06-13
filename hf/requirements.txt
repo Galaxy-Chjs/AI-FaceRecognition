@@ -1,9 +1,8 @@
-torch>=2.0.0
-torchvision
-facenet-pytorch
-opencv-python
-numpy
-pandas
-pillow
-gradio
-scipy
+"numpy<2.0" 
+facenet-pytorch 
+opencv-python-headless 
+scipy 
+pandas 
+gradio 
+pyyaml
+matplotlib
