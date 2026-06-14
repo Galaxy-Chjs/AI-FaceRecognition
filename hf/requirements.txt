@@ -1,5 +1,7 @@
+facenet-pytorch
+torch 
+torchvision
 numpy
-facenet-pytorch 
 opencv-python-headless 
 scipy 
 pandas 

@@ -33,8 +33,7 @@
 ```bash
 conda create -n aiface python=3.11 -y
 conda activate aiface
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 ## 使用方法
