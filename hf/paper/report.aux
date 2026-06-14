@@ -1,0 +1,112 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand*\HyPL@Entry[1]{}
+\HyPL@Entry{0<</S/D>>}
+\HyPL@Entry{1<</S/D>>}
+\@writefile{toc}{\contentsline {section}{\numberline {1}数据收集与标注}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}数据来源}{1}{subsection.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}数据集划分}{1}{subsection.1.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces 自收集数据集划分}}{1}{table.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{tab:dataset-split}{{1}{1}{自收集数据集划分}{table.caption.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}数据集目录结构}{1}{subsection.1.3}\protected@file@percent }
+\newlabel{lst:dataset-structure}{{1}{1}{数据集目录结构}{lstlisting.1}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}{\ignorespaces 数据集目录结构}}{1}{lstlisting.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.4}标注格式}{2}{subsection.1.4}\protected@file@percent }
+\newlabel{lst:ann-single}{{2}{2}{单人照标注样例}{lstlisting.2}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}{\ignorespaces 单人照标注样例}}{2}{lstlisting.2}\protected@file@percent }
+\newlabel{lst:ann-multi}{{3}{2}{多人照标注样例}{lstlisting.3}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}{\ignorespaces 多人照标注样例}}{2}{lstlisting.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces 单人照样例：p01\_t01.jpg（成龙）}}{3}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:sample-single}{{1}{3}{单人照样例：p01\_t01.jpg（成龙）}{figure.caption.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces 多人照样例：p05\_t02.jpg（邓紫棋与周杰伦）}}{3}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:sample-multi}{{2}{3}{多人照样例：p05\_t02.jpg（邓紫棋与周杰伦）}{figure.caption.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.5}身份映射表}{3}{subsection.1.5}\protected@file@percent }
+\citation{zhang2016mtcnn}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces 身份映射表（20 类公开人物）}}{4}{table.caption.4}\protected@file@percent }
+\newlabel{tab:identities}{{2}{4}{身份映射表（20 类公开人物）}{table.caption.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}模型与系统实现}{4}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}模型选择与原理}{4}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.1}人脸检测：MTCNN}{4}{subsubsection.2.1.1}\protected@file@percent }
+\citation{schroff2015facenet}
+\citation{cao2018vggface2}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.2}特征提取：InceptionResnetV1}{5}{subsubsection.2.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}系统整体流程}{5}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.1}注册阶段（底库构建）}{6}{subsubsection.2.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.2}识别阶段（图片识别）}{6}{subsubsection.2.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.3}多人脸处理策略}{6}{subsubsection.2.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}详细身份匹配逻辑}{7}{subsection.2.3}\protected@file@percent }
+\newlabel{eq:cosine-sim}{{1}{7}{详细身份匹配逻辑}{equation.2.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}核心参数配置}{7}{subsection.2.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces 参数配置}}{7}{table.caption.5}\protected@file@percent }
+\newlabel{tab:params}{{3}{7}{参数配置}{table.caption.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}模型文件与本地存储}{8}{subsection.2.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces 模型文件说明}}{8}{table.caption.6}\protected@file@percent }
+\newlabel{tab:model-files}{{4}{8}{模型文件说明}{table.caption.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}实验结果与分析}{8}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}CelebA 数据集 100 类测试}{8}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.1}测试设置}{8}{subsubsection.3.1.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces identity\_07684 的注册集图片（MTCNN 均未检测到人脸）}}{8}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:celeba-fail-reg}{{3}{8}{identity\_07684 的注册集图片（MTCNN 均未检测到人脸）}{figure.caption.7}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.2}测试结果}{9}{subsubsection.3.1.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces CelebA 100 类图片级评测结果}}{9}{table.caption.8}\protected@file@percent }
+\newlabel{tab:celeba-result}{{5}{9}{CelebA 100 类图片级评测结果}{table.caption.8}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.3}成功样例}{9}{subsubsection.3.1.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces CelebA 成功识别样例}}{9}{table.caption.9}\protected@file@percent }
+\newlabel{tab:celeba-success}{{6}{9}{CelebA 成功识别样例}{table.caption.9}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.4}失败样例分析}{10}{subsubsection.3.1.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces CelebA 失败识别样例及原因分析}}{10}{table.caption.10}\protected@file@percent }
+\newlabel{tab:celeba-fail}{{7}{10}{CelebA 失败识别样例及原因分析}{table.caption.10}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces CelebA 失败样例}}{10}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:celeba-fail}{{4}{10}{CelebA 失败样例}{figure.caption.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}自收集 20 类身份数据测试}{10}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}测试设置}{10}{subsubsection.3.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}图片级评测结果}{11}{subsubsection.3.2.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces 自收集 20 类图片级评测结果}}{11}{table.caption.12}\protected@file@percent }
+\newlabel{tab:custom-img-result}{{8}{11}{自收集 20 类图片级评测结果}{table.caption.12}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}逐脸级评测结果}{11}{subsubsection.3.2.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces 自收集 20 类逐脸级评测结果}}{11}{table.caption.13}\protected@file@percent }
+\newlabel{tab:custom-face-result}{{9}{11}{自收集 20 类逐脸级评测结果}{table.caption.13}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.4}成功样例}{11}{subsubsection.3.2.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces 自收集 20 类成功识别样例}}{11}{table.caption.14}\protected@file@percent }
+\newlabel{tab:custom-success}{{10}{11}{自收集 20 类成功识别样例}{table.caption.14}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces 自收集数据集多人照成功识别示例（p09 马云）}}{12}{figure.caption.15}\protected@file@percent }
+\newlabel{fig:custom-success}{{5}{12}{自收集数据集多人照成功识别示例（p09 马云）}{figure.caption.15}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces 自收集数据集多人照成功识别示例（p04 周杰伦 + p05 邓紫棋）}}{12}{figure.caption.16}\protected@file@percent }
+\newlabel{fig:custom-success2}{{6}{12}{自收集数据集多人照成功识别示例（p04 周杰伦 + p05 邓紫棋）}{figure.caption.16}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.5}失败样例分析}{13}{subsubsection.3.2.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces unknown 人脸被误判为屠呦呦（相似度 0.66）}}{13}{figure.caption.17}\protected@file@percent }
+\newlabel{fig:fail-type1}{{7}{13}{unknown 人脸被误判为屠呦呦（相似度 0.66）}{figure.caption.17}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces 目标人物被误判为 unknown：左为谷爱凌（相似度 0.58），右为 Dwayne Johnson（相似度 0.54）}}{13}{figure.caption.18}\protected@file@percent }
+\newlabel{fig:fail-type2}{{8}{13}{目标人物被误判为 unknown：左为谷爱凌（相似度 0.58），右为 Dwayne Johnson（相似度 0.54）}{figure.caption.18}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}阈值灵敏度分析}{14}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:sensitivity}{{3.3}{14}{阈值灵敏度分析}{subsection.3.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces 相似度阈值灵敏度分析曲线}}{14}{figure.caption.19}\protected@file@percent }
+\newlabel{fig:sensitivity}{{9}{14}{相似度阈值灵敏度分析曲线}{figure.caption.19}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}两种评测策略的对比}{14}{subsection.3.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {11}{\ignorespaces 评测策略对比}}{14}{table.caption.20}\protected@file@percent }
+\newlabel{tab:eval-compare}{{11}{14}{评测策略对比}{table.caption.20}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}前端可视化展示}{15}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}界面功能}{15}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}界面截图}{15}{subsection.4.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Gradio Web 演示界面截图}}{15}{figure.caption.21}\protected@file@percent }
+\newlabel{fig:gradio}{{10}{15}{Gradio Web 演示界面截图}{figure.caption.21}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}运行方式}{16}{subsection.4.3}\protected@file@percent }
+\newlabel{lst:gradio-start}{{4}{16}{启动 Gradio 服务}{lstlisting.4}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}{\ignorespaces 启动 Gradio 服务}}{16}{lstlisting.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}总结与展望}{16}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}系统完成情况}{16}{subsection.5.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces 系统任务完成情况}}{16}{table.caption.22}\protected@file@percent }
+\newlabel{tab:completion}{{12}{16}{系统任务完成情况}{table.caption.22}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}主要不足}{16}{subsection.5.2}\protected@file@percent }
+\citation{deng2019arcface}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}改进方向}{17}{subsection.5.3}\protected@file@percent }
+\bibcite{zhang2016mtcnn}{1}
+\bibcite{schroff2015facenet}{2}
+\bibcite{deng2019arcface}{3}
+\bibcite{cao2018vggface2}{4}
+\bibcite{liu2015celeba}{5}
+\bibcite{celeba_url}{6}
+\bibcite{facenet_pytorch}{7}
+\bibcite{gradio_url}{8}
+\gdef \@abspage@last{19}

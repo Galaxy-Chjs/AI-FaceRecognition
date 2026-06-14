@@ -137,16 +137,16 @@ with gr.Blocks(title="人脸识别系统") as demo:
         outputs=[output_image, output_info],
     )
 
-    gr.Markdown("---")
-    gr.Markdown(f"""
-### 系统信息
-| 项目 | 值 |
-|------|-----|
-| 运行设备 | {DEVICE} |
-| 人脸检测 | MTCNN|
-| 特征提取 | InceptionResnetV1 VGGFace2|
-| 相似度阈值 | {THRESHOLD} |
-""")
+#     gr.Markdown("---")
+#     gr.Markdown(f"""
+# ### 系统信息
+# | 项目 | 值 |
+# |------|-----|
+# | 运行设备 | {DEVICE} |
+# | 人脸检测 | MTCNN|
+# | 特征提取 | InceptionResnetV1 VGGFace2|
+# | 相似度阈值 | {THRESHOLD} |
+# """)
 
 
 if __name__ == '__main__':
